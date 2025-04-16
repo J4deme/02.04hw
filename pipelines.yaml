@@ -16,18 +16,11 @@ stages:
         pool:
           name: Default
         steps:
-          - script: |
-              Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi
-              Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'
+          - script: powershell -Command "Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'"
             displayName: "Install Azure CLI (Windows)"
-            shell: pwsh
 
-          - script: |
-              Invoke-WebRequest -Uri https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_windows_amd64.zip -OutFile terraform.zip
-              Expand-Archive terraform.zip -DestinationPath "$env:USERPROFILE\bin" -Force
-              $env:PATH += ";$env:USERPROFILE\bin"
+          - script: powershell -Command "Invoke-WebRequest -Uri https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_windows_amd64.zip -OutFile terraform.zip; Expand-Archive terraform.zip -DestinationPath $env:USERPROFILE\bin -Force; $env:PATH += ';' + $env:USERPROFILE + '\bin'"
             displayName: "Install Terraform (Windows)"
-            shell: pwsh
 
           - script: terraform init
             workingDirectory: environment
