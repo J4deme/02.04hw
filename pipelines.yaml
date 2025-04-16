@@ -1,0 +1,59 @@
+trigeer:
+  branches:
+    include:
+      - main
+pr:
+  branches:
+    include:
+      - "*"
+variables:
+  TF_VERSION: "1.5.7"
+
+stages:
+  - stage: Validate
+    jobs:
+      - job: TerraformInitValidate
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - script: |
+              curl -sL https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip -o terraform.zip
+              unzip terraform.zip
+              sudo mv terraform /usr/local/bin/
+            workingDirectory: environment
+            displayName: "Install Terraform"
+          - script: terraform init
+            workingDirectory: environment
+            displayName: "Terraform Init"
+
+          - script: terraform validate
+            workingDirectory: environment
+            displayName: "Terraform Validate"
+
+  - stage: Plan
+    dependsOn: Validate
+    condition: |
+      or(
+        eq(variables['Build.Reason'], 'PullRequest'),
+        eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      )
+    jobs:
+      - job: TerraformPlan
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - script: terraform plan
+            workingDirectory: environment
+            displayName: "Terraform Plan"
+
+  - stage: Apply
+    dependsOn: Plan
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    jobs:
+      - job: TerraformApply
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - script: terraform apply -auto-approve
+            workingDirectory: environment
+            displayName: "Terraform Apply"
