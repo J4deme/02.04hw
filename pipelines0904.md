@@ -1,0 +1,92 @@
+# **BeStrong Pipelines**
+
+#### Creating a CI/CD based pipelines:
+
+```hcl
+trigger:
+  branches:
+    include:
+      - main
+pr:
+  branches:
+    include:
+      - "*"
+
+variables:
+  TF_VERSION: "1.5.7"
+  sql_admin_password: $(sql_admin_password) # Це все ще потрібно, але далі треба і в командах
+
+stages:
+  - stage: Validate
+    jobs:
+      - job: TerraformInitValidate
+        pool:
+          name: Default
+        steps:
+          - script: powershell -Command "Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'"
+            displayName: "Install Azure CLI (Windows)"
+
+          - script: powershell -Command "Invoke-WebRequest -Uri https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_windows_amd64.zip -OutFile terraform.zip; Expand-Archive terraform.zip -DestinationPath $env:USERPROFILE\bin -Force; $env:PATH += ';' + $env:USERPROFILE + '\bin'"
+            displayName: "Install Terraform (Windows)"
+
+          - script: terraform init
+            workingDirectory: environment
+            displayName: "Terraform Init"
+
+          - script: terraform validate
+            workingDirectory: environment
+            displayName: "Terraform Validate"
+
+  - stage: Plan
+    dependsOn: Validate
+    condition: |
+      or(
+        eq(variables['Build.Reason'], 'PullRequest'),
+        eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      )
+    jobs:
+      - job: TerraformPlan
+        pool:
+          name: Default
+        steps:
+          - script: terraform init -reconfigure
+            workingDirectory: environment
+            displayName: "Terraform Init (Plan)"
+
+          - script: terraform plan -var="sql_admin_password=$(sql_admin_password)"
+            workingDirectory: environment
+            displayName: "Terraform Plan"
+
+  - stage: Apply
+    dependsOn: Plan
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    jobs:
+      - job: TerraformApply
+        pool:
+          name: Default
+        steps:
+          - script: terraform init -reconfigure
+            workingDirectory: environment
+            displayName: "Terraform Init (Apply)"
+
+          - script: terraform apply -auto-approve -var="sql_admin_password=$(sql_admin_password)"
+            workingDirectory: environment
+            displayName: "Terraform Apply"
+
+```
+
+### Creating a local agent to run pipelines
+
+![Alt text](image-3.png)
+
+#### Creating pipeline in Azure DevOps
+
+![Alt text](image-1.png)
+
+#### Creating variable
+
+![Alt text](image-2.png)
+
+#### Running pipeline from Azure DevOps
+
+![Alt text](image.png)
