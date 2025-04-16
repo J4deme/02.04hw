@@ -1,4 +1,4 @@
-trigeer:
+trigger:
   branches:
     include:
       - main
