@@ -6,9 +6,10 @@ pr:
   branches:
     include:
       - "*"
+
 variables:
   TF_VERSION: "1.5.7"
-  sql_admin_password: $(sql_admin_password)
+  sql_admin_password: $(sql_admin_password) # Це все ще потрібно, але далі треба і в командах
 
 stages:
   - stage: Validate
@@ -47,7 +48,7 @@ stages:
             workingDirectory: environment
             displayName: "Terraform Init (Plan)"
 
-          - script: terraform plan
+          - script: terraform plan -var="sql_admin_password=$(sql_admin_password)"
             workingDirectory: environment
             displayName: "Terraform Plan"
 
@@ -61,8 +62,8 @@ stages:
         steps:
           - script: terraform init -reconfigure
             workingDirectory: environment
-            displayName: "Terraform Init (Plan)"
+            displayName: "Terraform Init (Apply)"
 
-          - script: terraform apply -auto-approve
+          - script: terraform apply -auto-approve -var="sql_admin_password=$(sql_admin_password)"
             workingDirectory: environment
             displayName: "Terraform Apply"
