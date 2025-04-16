@@ -14,7 +14,7 @@ stages:
     jobs:
       - job: TerraformInitValidate
         pool:
-          vmImage: "ubuntu-latest"
+          name: Default
         steps:
           - script: |
               curl -sL https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip -o terraform.zip
@@ -40,7 +40,7 @@ stages:
     jobs:
       - job: TerraformPlan
         pool:
-          vmImage: "ubuntu-latest"
+          name: Default
         steps:
           - script: terraform plan
             workingDirectory: environment
@@ -52,7 +52,7 @@ stages:
     jobs:
       - job: TerraformApply
         pool:
-          vmImage: "ubuntu-latest"
+          name: Default
         steps:
           - script: terraform apply -auto-approve
             workingDirectory: environment
