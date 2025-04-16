@@ -24,8 +24,8 @@ stages:
 
           - script: |
               Invoke-WebRequest -Uri https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_windows_amd64.zip -OutFile terraform.zip
-              Expand-Archive terraform.zip -DestinationPath $Env:USERPROFILE\bin
-              $Env:PATH += ";$Env:USERPROFILE\bin"
+              Expand-Archive terraform.zip -DestinationPath "$env:USERPROFILE\bin" -Force
+              $env:PATH += ";$env:USERPROFILE\bin"
             displayName: "Install Terraform (Windows)"
             shell: pwsh
 
