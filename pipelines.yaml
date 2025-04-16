@@ -42,6 +42,10 @@ stages:
         pool:
           name: Default
         steps:
+          - script: terraform init -reconfigure
+            workingDirectory: environment
+            displayName: "Terraform Init (Plan)"
+
           - script: terraform plan
             workingDirectory: environment
             displayName: "Terraform Plan"
@@ -54,6 +58,10 @@ stages:
         pool:
           name: Default
         steps:
+          - script: terraform init -reconfigure
+            workingDirectory: environment
+            displayName: "Terraform Init (Plan)"
+
           - script: terraform apply -auto-approve
             workingDirectory: environment
             displayName: "Terraform Apply"
